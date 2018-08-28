@@ -1,12 +1,14 @@
 <template>
     <div class="PlaceSearch">
         <!-- header -->
-        <mt-header :title="$route.query.name">
-            <router-link to="/" slot="left"><mt-button icon="back"></mt-button></router-link>
+        <mt-header title="起始点选择">
+            <router-link to="" slot="left">
+                <mt-button icon="back">返回</mt-button>
+            </router-link>
         </mt-header>
         <!-- 搜索 -->
-        <mt-search :show="true" v-model="startValue"></mt-search>
-        <mt-search :show="true" v-model="endValue"></mt-search>
+        <mt-search :show="true" @click.native="searchFocus('start')" v-model="startValue"></mt-search>
+        <mt-search :show="true" @click.native="searchFocus('end')" v-model="endValue"></mt-search>
         <!-- tab页 -->
         <mt-navbar style="margin-bottom: 5px" v-model="selected">
             <mt-tab-item id="1">名称搜索</mt-tab-item>
@@ -15,7 +17,7 @@
         <!-- 搜索结果 -->
         <mt-index-list>
             <mt-index-section v-for="(place, index) in result" :key="index" :index="place.index" >
-                <mt-cell v-for="p in place.data" :key="p.poi_id" :n="p.name" :title="p.name"></mt-cell>
+                <mt-cell v-for="p in place.data" @click.native="selectFromList(p)" :key="p.poi_id" :n="p.name" :title="p.name"></mt-cell>
             </mt-index-section>
         </mt-index-list>
     </div>
@@ -23,7 +25,6 @@
 
 <script>
     import ajax from '@/utils/ajax';
-    import appHeader from '@/components/header'
     export default {
         name: 'PlaceSearch',
         props: {},
@@ -33,12 +34,14 @@
                 selected: '1',
                 startValue: null,
                 endValue: null,
-                result: []
+                result: [],
+                whichPoint: 'start',
+                isSelected: false
             }
         },
-        components: {appHeader},
         watch: {
             startValue (newValue, oldValue) {
+                if (this.isSelected) return;
                 if (this.timer) clearTimeout(this.timer);
                 if (!newValue) {
                     return this.result = [];
@@ -50,6 +53,7 @@
                 }, 500);
             },
             endValue (newValue, oldValue) {
+                if (this.isSelected) return;
                 if (this.timer) clearTimeout(this.timer);
                 if (!newValue) {
                     return this.result = [];
@@ -62,11 +66,31 @@
             }
         },
         methods: {
+            handleClose: function () {
+                console.log('121212')
+            },
+            searchFocus: function(flag) {
+                this.whichPoint = flag;
+            },
             pointSelectOnMap() {
-                this.$router.push({path: `main/point?id=6101000094&name=荣民龙首广场`});
+                this.$router.push({path: `/pointInfo?floorId=${this.globalData.currentFloorId}&name=${this.$route.query.name}&type=${this.whichPoint}`});
+            },
+            selectFromList(data) {
+                if (this.whichPoint === 'start') {
+                    this.startValue = data.name
+                }
+                if (this.whichPoint === 'end') {
+                    this.endValue = data.name
+                }
+                this.isSelected = true;
+                setTimeout(() => {
+                    this.isSelected = false;
+                }, 500);
+                this.result = [];
             },
             loadDataList: function (searchName) {
                 const param = { buildingId: 6101000094, tip: searchName };
+                if (this.isSelected) return Promise.resolve([]);
                 return ajax.get(`/indoor/building/search/poi/`, param).then(res => {
                     if(res.data && res.data.length !== 0) {
                         let resultObj = {}, resultArr = [];
@@ -86,7 +110,31 @@
                 });
             }
         },
-        mounted: function() {},
+        mounted: function() {
+            if (this.$route.query.selectType) {
+                this.whichPoint = this.$route.query.selectType;
+            }
+            if (this.$route.query.from === '/pointInfo') {
+                if (this.whichPoint === 'start') {
+                    this.startValue = this.$route.query.name;
+                    this.endValue = this.globalData.searchInput.end;
+                    this.globalData.searchInput.start = this.$route.query.name;
+                }
+                if (this.whichPoint === 'end') {
+                    this.endValue = this.$route.query.name;
+                    this.startValue = this.globalData.searchInput.start;
+                    this.globalData.searchInput.end = this.$route.query.name;
+                }
+            } else {
+                this.startValue =  this.globalData.searchInput.start = null;
+                this.endValue = this.globalData.searchInput.end = null;
+            }
+
+            this.isSelected = true;
+            setTimeout(() => {
+                this.isSelected = false;
+            }, 500);
+        }
     };
 </script>
 

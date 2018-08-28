@@ -59,8 +59,9 @@
         this.$router.push({
             path:'/search',
             query: {
-                id: this.selectedPoi.id,
-                name: this.selectedPoi.name
+                id: this.globalData.currentFloorId,
+                name: this.$route.query.name,
+                from: '/selectInfo'
             }
         });
       },
