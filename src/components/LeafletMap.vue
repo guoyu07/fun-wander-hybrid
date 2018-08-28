@@ -6,12 +6,12 @@
 
 <script>
     import L from 'leaflet'
-    import icon from 'leaflet/dist/images/marker-icon.png';
-    import iconShadow from 'leaflet/dist/images/marker-shadow.png';
     import ajax from '../utils/ajax'
     import util from '../utils/util'
     import 'leaflet/dist/leaflet.css'
     import events from '@/utils/events'
+    // import appHeader from '@/components/header'
+    import getRender from '../utils/maprander'
 
     L.Icon.Default.prototype.options.imagePath = '/res/leaflet/images/'
 
@@ -29,7 +29,7 @@
                 layers: [],
                 locationMarker: null,
                 selectLoactionMarker: null,
-                poiFaces: [],
+                pois: [],
                 selectedPoiFace: null
             }
         },
@@ -75,7 +75,6 @@
             this.$bus.$off(events.FLOORCHANGING);
             this.$bus.$off(events.MAPCLEAR);
         },
-
         methods: {
             mapClick: function (event) { // 地图点击事件
                 this.$bus.$emit(events.MAPCLICK, event);
@@ -159,6 +158,15 @@
                     }
                 });
             },
+            getPoiFeature: function (faceFeature) {
+                var poi = null;
+                for (let i = 0; i < this.pois.length; i++) {
+                    if (this.pois[i].properties.id == faceFeature.properties.poiId) {
+                        poi = this.pois[i];
+                    }
+                }
+                return poi;
+            },
             // 获得商场轮廓图层;
             loadBuilding: function (buildingId) {
                 return ajax.get(`/indoor/building/${buildingId}`).then(res => {
@@ -208,7 +216,7 @@
                 });
                 this.layers = [];
                 var that = this;
-                const layers = [this.loadPoiFace(floorId),  this.loadLink(floorId), this.loadPoi(floorId, flag)];
+                const layers = [this.loadPoiFace(floorId, flag),  this.loadLink(floorId), this.loadPoi(floorId)];
 
                 Promise.all(layers).then(result => {
                     result.forEach(item => {
@@ -220,63 +228,51 @@
                             item.addTo(that.map);
                         }
                     })
+                    // that.layers[0].bringToFront(); // 将面放置在最顶层
                 });
             },
-            loadPoiFace: function (floorId) {
+            /**
+             * 地图渲染面
+             * @param floorId 楼层id
+             * @param falg 是否增加poi点击事件的标志 0表示不增加 1表示增加点击事件
+             */
+            loadPoiFace: function (floorId, flag) {
                 var that = this;
                 return ajax.get(`/indoor/building/floor/poiFace/${floorId}`).then(res => {
                     if (res && res.data && res.data.length > 0) {
-                        var colos = {
-                            9203002: '#fd7676',//公共受限区域
-                            9205000: '#ddd',//空置单元
+                        let render = getRender(res);
+                        render.style.onEachFeature = function (feature, layer) {
+                            if (flag == 1) {
+                                layer.on('click', function (e) {
+                                    that.map.off('click');
 
-                            1103003: '#befe73',//客梯
-                            1102000: '#befe73',//楼梯
-                            1103001: '#befe73',//扶梯
-                            
-                            1303014: '#f69d70',
-                            1303004: '#d9ceff',
-                            1303020: '#f1d35b',//体育
-                            1303005: '#f69d70',//金
-                            1303015: '#fe9104',//玛斯威顿
-                            1303020: '#c6a5a3',//安踏体育
-                            1303001: '#fb8ec6',//服装
-                            1303002: '#c6a5a3',//鞋
-                            1304000: '#81effe',//保健
-                            1303000: '#f69d70',//商铺
-                            1306004: '#04feef',//中国移动
-                            1303007: '#f1d35b',//手机
+                                    var faecFeature = e.target.feature;
+                                    var poiFeature = that.getPoiFeature(faecFeature);
+                                    if (poiFeature) {
+                                        that.$bus.$emit(events.SELECTPOI, poiFeature);
+                                        that.drawFaceBorder(faecFeature);
 
-                            2707000: '#affed1',//医药超市
-                            2301000: '#d9ceff',//zhiao
-                            1303009: '#f69d70',//酒
-                        };
-                        const feature = res.data.map(it => {
-                            return {
-                                type: 'Feature',
-                                properties: {
-                                    id: it.face_id,
-                                    poiId: it.poi_id,
-                                    poiKind: it.poi_kind
-                                },
-                                geometry: util.wktToGeojson(it.geometry)
+                                        const latlng = [poiFeature.geometry.coordinates[1], poiFeature.geometry.coordinates[0]];
+                                        that.map.panTo(latlng);
+                                        that.locationMarker && that.map.removeLayer(that.locationMarker);
+                                        that.locationMarker = L.marker(latlng).addTo(that.map);
+                                    }
+
+
+                                    setTimeout(function () { // 解决 marker事件和地图事件重复执行的问题
+                                        that.map.on('click', function (event) {
+                                            that.mapClick(event);
+                                        });
+                                    }, 100)
+                                });
                             }
-                        });
-                        that.poiFaces = feature;
-                        const style = {
-                            style: function(feature) {
-                                return {
-                                color: '#cecece', //店铺边框色彩
-                                fill: true,
-                                fillColor: colos[feature.properties.poiKind] ?  colos[feature.properties.poiKind] : '#f1d35b',//店铺内部色彩
-                                fillOpacity: 0.9
-                            }}
-                        };
-                        return [L.geoJSON(feature, style)];
+                        }
+                        return [L.geoJSON(render.feature, render.style)];
                     } else {
                         return null
                     }
-                }).catch(err => {
+                })
+                .catch(err => {
                     console.error(err)
                     return null
                 })
@@ -307,16 +303,15 @@
                         return null
                     }
                 }).catch(err => {
-                    console.error(err)
+                    console.error(err);
                     return null
                 })
             },
             /**
              * 地图渲染poi以及文字
              * @param floorId 楼层id
-             * @param falg 是否增加poi点击事件的标志 0表示不增加 1表示增加点击事件
              */
-            loadPoi: function (floorId, flag) {
+            loadPoi: function (floorId) {
                 var that = this;
                 return ajax.get(`/indoor/building/floor/poi/${floorId}`).then(res => {
                     if (res && res.data && res.data.length > 0) {
@@ -334,37 +329,41 @@
                             }
                         });
 
+                        that.pois = feature;
+
                         var layer1 = L.geoJSON(feature, {
+                            // images:src='/image/shoplogo.png',
                             style: {
+                                // 
                                 radius: 2,
-                                color: '#000',
+                                color: '#fde3b1',
                                 fill: true,
                                 fillColor: '#000',
                                 fillOpacity: 1
                             },
                             pointToLayer: function (feature, latlng) {
                                 var circleMarker = L.circleMarker(latlng);
-                                if (flag == 1) {
-                                    circleMarker.on('click', function (e) {
-                                        that.map.off('click');
-                                        const latlng = [e.latlng.lat, e.latlng.lng];
-                                        that.locationMarker && that.map.removeLayer(that.locationMarker);
-                                        that.map.panTo(latlng);
-                                        that.locationMarker = L.marker(latlng).addTo(that.map);
-                                        // that.$bus.$emit(events.GETNEARPOINTS);
-
-                                        that.$bus.$emit(events.SELECTPOI, e.target.feature);
-
-                                        that.drawFaceBorder(e.target.feature.properties.id);
-
-                                        setTimeout(function () { // 解决 marker事件和地图事件重复执行的问题
-                                            that.map.on('click', function (event) {
-                                                console.info('click');
-                                                that.mapClick(event);
-                                            });
-                                        }, 100)
-                                    });
-                                }
+//                                if (flag == 1) {
+//                                    circleMarker.on('click', function (e) {
+//                                        that.map.off('click');
+//                                        const latlng = [e.latlng.lat, e.latlng.lng];
+//                                        that.locationMarker && that.map.removeLayer(that.locationMarker);
+//                                        that.map.panTo(latlng);
+//                                        that.locationMarker = L.marker(latlng).addTo(that.map);
+//                                        // that.$bus.$emit(events.GETNEARPOINTS);
+//
+//                                        that.$bus.$emit(events.SELECTPOI, e.target.feature);
+//
+//                                        that.drawFaceBorder(e.target.feature.properties.id);
+//
+//                                        setTimeout(function () { // 解决 marker事件和地图事件重复执行的问题
+//                                            that.map.on('click', function (event) {
+//                                                console.info('click');
+//                                                that.mapClick(event);
+//                                            });
+//                                        }, 100)
+//                                    });
+//                                }
                                 return circleMarker;
                             }
                         });
@@ -390,14 +389,7 @@
                     return null
                 })
             },
-            drawFaceBorder(poiId) {
-                var face;
-                for (let i = 0, len = this.poiFaces.length; i < len; i++) {
-                    if (this.poiFaces[i].properties.poiId === poiId) {
-                        face = this.poiFaces[i];
-                        break;
-                    }
-                }
+            drawFaceBorder(face) {
                 const style = {
                     style: function(feature) {
                         return {
