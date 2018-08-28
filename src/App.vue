@@ -30,4 +30,11 @@ export default {
   font-size: 10px;
   border-radius: 15px;
 }
+/** 复写search部分样式 */
+.PlaceSearch > .mint-search {
+  height: auto;
+}
+.PlaceSearch .mint-search-list {
+  height: 0;
+}
 </style>

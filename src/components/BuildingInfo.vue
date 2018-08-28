@@ -56,17 +56,14 @@
     },
     methods: {
       pathLine() {
-        if (!this.selectedPoi) {
-            this.$router.push({path:'/search'});
-        } else {
-            this.$router.push({
-                path:'/search',
-                query: {
-                    id: this.selectedPoi.id,
-                    name: this.selectedPoi.name
-                }
-            });
-        }
+        this.$router.push({
+            path:'/search',
+            query: {
+                id: this.globalData.currentFloorId,
+                name: this.$route.query.name,
+                from: '/selectInfo'
+            }
+        });
       },
       openSelectPanel() { // 打开选择楼层的面板
         this.openSelectPanelFlag = !this.openSelectPanelFlag;

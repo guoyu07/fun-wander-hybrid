@@ -14,15 +14,6 @@ const routes = [
   { path: '/', component: BuildingList },
   { path: '/selectInfo', component: SelectInfo },
   { path: '/pointInfo', component: PointInfo },
-  // { path: '/main', component: Main,
-  //     children: [
-  //         { path: 'info', component: BuildingInfo },
-  //         {
-  //             path: 'point',
-  //             component: areaDataList
-  //         }
-  //     ]
-  // },
   { path: '/map', component: LeafletMap },
   { path: '/mapbox', component: MapBoxMap },
   { path: '/minmap', component: MineMap },

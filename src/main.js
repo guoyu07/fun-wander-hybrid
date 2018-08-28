@@ -21,7 +21,11 @@ Vue.prototype.globalData = { // 临时构造假数据
         "name": "荣民龙首广场"
     },
     "currentFloorId": "61010000941001",
-    "zoom": 19
+    "zoom": 19,
+    searchInput: {
+        start: null,
+        end: null
+    }
 };
 
 new Vue({

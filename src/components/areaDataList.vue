@@ -1,7 +1,7 @@
 <template>
   <div class="areaDataList">
     <div v-for="item in areaList" :key="item.id" @click.stop="selectList(item)">
-      <mt-cell :title="item.properties.name" :label="`${$route.query.name}--${item.properties.name}`">
+      <mt-cell :title="item.properties.name" :label="`${item.properties.name}`">
         <mt-button type="primary" class="start_end_btn" size="small" @click.stop="selectPoint(item)">{{pointType}}</mt-button>
       </mt-cell>
     </div>
@@ -37,12 +37,20 @@ export default {
       },
       selectPoint(eData) {
           // 通过跳转路由来实现;
+          this.$router.push({
+            path: '/search',
+            query: {
+              pointId: eData.properties.id,
+              name: eData.properties.name,
+              selectType: this.$route.query.type,
+              from: '/pointInfo'
+            }
+          });
       },
       loadAreaLists(location) {
           let radius = 15; // 搜索半径;
-          return this.loadAreaPoints(61010000941002).then(res => {
+          return this.loadAreaPoints(this.globalData.currentFloorId).then(res => {
               let result = res.map(item => {
-                  console.info(item);
                   const tmpLatLng = L.latLng(...item.geometry.coordinates.reverse());
                   item.distance = location.distanceTo(tmpLatLng);
                   return item;
@@ -76,13 +84,12 @@ export default {
 
   mounted() {
     this.$bus.on(events.GETNEARPOINTS, (data) => {
-
         if (!data.currentLocation) {
             return;
         }
         this.loadAreaLists(data.currentLocation).then(result => {
             this.areaList = result;
-        })
+        });
     });
   },
 

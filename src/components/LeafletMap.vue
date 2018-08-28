@@ -87,7 +87,6 @@
             },
             // 处理地图上点选起始点的逻辑
             handleSelectpointOnMap: function () {
-
                 let pixToContainer = null;
                 let currentLocation = [34.29231145532328, 108.94801229238512];
                 this.selectLoactionMarker = L.marker(currentLocation).addTo(this.map);
@@ -100,6 +99,7 @@
                 setTimeout(() => {
                     pixToContainer = this.map.latLngToContainerPoint(currentLocation);
                     isReady = true;
+                    this.$bus.emit(events.GETNEARPOINTS, {event: {}, currentLocation: L.latLng(...currentLocation)});
                 }, 300);
 
                 // 监听地图移动事件;
@@ -118,6 +118,11 @@
                 // 监听来自areaList的列表点选事件;
                 this.$bus.on(events.SELECTSTARTANDEND, data => {
                     this.map.panTo(data.coordinates);
+                    isReady = false;
+                    setTimeout(() => {
+                        pixToContainer = this.map.latLngToContainerPoint(data.coordinates);
+                        isReady = true;
+                    }, 300);
                     this.selectLoactionMarker.setLatLng(data.coordinates);
                 });
             },
