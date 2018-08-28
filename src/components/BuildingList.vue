@@ -1,32 +1,31 @@
 <template>
-
-	<div id="shop" class="BuildingList">
-    <img class="imglogo" src="/images/logo.png"  width="45" height="50" >
-        <div v-for="item in buildings" @click="toMap(item);">
-
-          <mt-header fixed title="商 场 列 表"></mt-header>
-
-            <mt-cell :title="item.name" :label="item.address" is-link></mt-cell>
-        </div>
+	<div>
+		<mt-header title="商场列表"></mt-header>
+		<div class="building-list">
+			<mt-cell v-for="item in buildings" :key="item.building_id" @click="toMap(item)" 
+				to="/selectInfo"
+				:title="item.name" 
+				:label="item.address" 
+				is-link>
+				<img src="/images/logo.png" class="building-icon">
+			</mt-cell>
+		</div>
 	</div>  	
 </template>
 
 <script>
 import ajax from '../utils/ajax';
 import util from '../utils/util';
-import { Header } from 'mint-ui';
-
 
 export default {
-  name: 'HelloWorld',
+  name: 'BuildingList',
   data: function() {
     return {
-      buildings: []
+	  buildings: [],
+	  selectedBuildingId: 0
     };
   },
-  props: {},
   mounted: function() {
-    name: 'shop';
     const that = this;
     this.loadBuilding().then(data => {
       if (data) {
@@ -35,12 +34,15 @@ export default {
     });
   },
   methods: {
-    toMap: function (item) {
-        this.$router.push({path:'/selectInfo' , query: {id: item.building_id, name: item.name}})
-        this.globalData.currentBuilding = {
-            id: item.building_id,
-            name: item.name
-        };
+    toMap: function(item) {
+      this.$router.push({
+        path: '/selectInfo',
+        query: { id: item.building_id, name: item.name }
+      });
+      this.globalData.currentBuilding = {
+        id: item.building_id,
+        name: item.name
+      };
     },
 
     loadBuilding: function(buildingId) {
@@ -48,7 +50,7 @@ export default {
         .get('/indoor/building')
         .then(res => {
           if (res && res.data) {
-            return res.data
+            return res.data;
           } else {
             return null;
           }
@@ -64,18 +66,12 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
-  .BuildingList{
-      margin:39px 0 0 60px;
-    }
-  .imglogo{
-    position: absolute;
-      left: 10px;
-      top:45px; 
-  }
-  /* .imglogo2{
-    position: absolute;
-      left: 10px;
-      top:50px; 
-  } */
+	.building-list {
+		margin-top: 3px;
+	}
+	img.building-icon {
+		width: 50px;
+		height: 50px;
+		/* border: 1px solid #eee; */
+	}
 </style>
