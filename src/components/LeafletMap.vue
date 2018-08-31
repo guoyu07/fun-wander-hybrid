@@ -11,7 +11,7 @@
     import 'leaflet/dist/leaflet.css'
     import events from '@/utils/events'
     // import appHeader from '@/components/header'
-    import getRender from '../utils/maprander'
+    import getRender from '../utils/render'
 
     L.Icon.Default.prototype.options.imagePath = '/res/leaflet/images/'
 

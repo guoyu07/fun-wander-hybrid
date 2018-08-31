@@ -5,21 +5,20 @@ import MapBoxMap from '../components/MapBoxMap.vue';
 import LeafletMap from '../components/LeafletMap.vue';
 import MineMap from '../components/MineMap.vue';
 import BuildingList from '../components/BuildingList.vue';
-import PlaceSearch from '../components/PlaceSearch.vue';
-import SelectInfo from '../components/SelectInfo.vue';
-import PointInfo from '../components/PointInfo.vue';
-// import BuildingInfo from '../components/BuildingInfo.vue';
+import NaviPath from '../components/NaviPath.vue';
+import BuildingMap from '../components/BuildingMap.vue';
+import SelectPoiInMap from '../components/SelectPoiInMap.vue';
 
 const routes = [
-  { path: '/', component: BuildingList },
-  { path: '/selectInfo', component: SelectInfo },
-  { path: '/pointInfo', component: PointInfo },
-  { path: '/map', component: LeafletMap },
-  { path: '/mapbox', component: MapBoxMap },
-  { path: '/minmap', component: MineMap },
-  { path: '/search', component: PlaceSearch }
+    { path: '/', component: BuildingList },
+    { path: '/buildingMap', component: BuildingMap },
+    { path: '/naviPath', component: NaviPath },
+    { path: '/selectPoi', component: SelectPoiInMap },
+    { path: '/map', component: LeafletMap },
+    { path: '/mapbox', component: MapBoxMap },
+    { path: '/minmap', component: MineMap }    
 ];
 
 export default new VueRouter({
-  routes
+    routes
 });
