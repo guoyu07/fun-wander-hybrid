@@ -1,4 +1,4 @@
-const ENV = 'prod';
+const ENV = 'dev';
 
 const localhost = 'http://localhost:8080'; // 本地Web服务
 

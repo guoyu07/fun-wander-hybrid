@@ -20,21 +20,22 @@ export default {
   height: 100%;
 }
 
-.div-icon {
+div.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+div.div-icon {
   font-family: 'Source Han Sans SC','PingFangSC-Medium','Microsoft YaHei','微软雅黑';
   text-align: center;
   color:#665c59;
 }
+
 /** 设置选择启终点按钮样式 */
 .start_end_btn {
   font-size: 10px;
   border-radius: 15px;
-}
-/** 复写search部分样式 */
-.PlaceSearch > .mint-search {
-  height: auto;
-}
-.PlaceSearch .mint-search-list {
-  height: 0;
 }
 </style>

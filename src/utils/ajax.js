@@ -24,6 +24,10 @@ const get = (url, params) => {
     }
 
     return ajax.get(oUrl).then(res => {
+        if (res.code === -1) {
+            throw new Error(`AjaxGetError: ${res.error}`)
+        }
+
         return res.data
     })
 }
@@ -35,6 +39,10 @@ const get = (url, params) => {
  * @return {Promise}        Promise对象
  */
 const post = (url, params) => ajax.post(url, params).then(res => {
+    if (res.code === -1) {
+        throw new Error(`AjaxPostError: ${res.error}`)
+    }
+    
     return res.data
 })
 
