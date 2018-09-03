@@ -78,17 +78,7 @@ export default {
             return temp.sort((a, b) => a.distance - b.distance).filter(item => item.distance < radius);
         },
         selectPoi(data) {
-            const queryObj = {}
-            if (this.startEnd === 1) {
-                queryObj.sPoiId = data.poi_id
-            } else {
-                queryObj.ePoiId = data.poi_id
-            }
-            // 通过跳转路由来实现;
-            this.$router.push({
-                path: '/naviPath',
-                query: queryObj
-            })
+            this.$emit('select-poi', data)
         }
     }
 }
