@@ -7,7 +7,7 @@
             <mt-button icon="more" @click="showActionSheet()" slot="right"></mt-button>
         </mt-header>
         <indoor-map :building-id="buildingId" :floor-id="floorId" :show-center-marker="true" :zoom="globalData.map.zoom" :center="globalData.map.center" @map-moveend="getMapCenter"></indoor-map>
-        <closest-poi-list :floor-id="floorId" :location="location" :start-end="startEnd"></closest-poi-list>
+        <closest-poi-list :floor-id="floorId" :location="location" :start-end="startEnd" @select-poi="selectPoi"></closest-poi-list>
         <mt-actionsheet :actions="floorActions" v-model="sheetVisible"></mt-actionsheet>
     </div>
 </template>
@@ -17,7 +17,7 @@ import IndoorMap from './IndoorMap.vue'
 import ClosestPoiList from "./ClosestPoiList.vue";
 
 export default {
-    name: 'SelectPoiInMap',
+    name: 'SelectPoiOnMap',
     components: {
         IndoorMap,
         ClosestPoiList
@@ -53,6 +53,19 @@ export default {
         },
         getMapCenter(data) {
             this.location = data.center
+        },
+        selectPoi(data) {
+            const queryObj = { ...this.$route.query }
+            if (this.startEnd === 1) {
+                queryObj.sPoiId = data.poi_id
+            } else {
+                queryObj.ePoiId = data.poi_id
+            }
+
+            this.$router.push({
+                path: '/naviPath',
+                query: queryObj
+            });
         }
     }
 }

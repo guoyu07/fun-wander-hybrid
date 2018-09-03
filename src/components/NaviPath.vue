@@ -14,7 +14,7 @@
             <!-- tab页 -->
             <mt-navbar style="margin-bottom: 5px" v-model="mode">
                 <mt-tab-item :id="1">名称搜索</mt-tab-item>
-                <mt-tab-item :id="2" @click.native="pointSelectOnMap()">地图选点</mt-tab-item>
+                <mt-tab-item :id="2" @click.native="selectPoiOnMap()">地图选点</mt-tab-item>
             </mt-navbar>
             <!-- 搜索结果 -->
             <div>
@@ -138,13 +138,15 @@ export default {
         getPoiByTip: function(tip) {
             return ds.getPoiByTip(this.buildingId, tip)
         },
-        pointSelectOnMap() {
+        selectPoiOnMap() {
             this.$router.push({
                 path: '/selectPoi',
                 query: {
                     buildingId: this.buildingId,
                     floorId: this.floorId,
-                    startEnd: this.startEnd
+                    startEnd: this.startEnd,
+                    sPoiId: this.startPoi ? this.startPoi.poi_id : '',
+                    ePoiId: this.endPoi ? this.endPoi.poi_id : ''
                 }
             });
         },
@@ -166,10 +168,14 @@ export default {
     }
 }
 </script>
-<style scoped>
+<style>
 /** 覆盖search部分样式 */
 
 .mint-search {
     height: auto;
+}
+
+.mint-search-list {
+    display: none
 }
 </style>
